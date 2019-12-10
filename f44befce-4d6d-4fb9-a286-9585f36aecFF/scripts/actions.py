@@ -1,6 +1,7 @@
 import re
 
 CounterMarker =("Damage", "0f74413d-45d6-4c52-b584-201b99af4125")
+CounterMarkerDefense = ("Defense", "1a650fb4-58ff-4be6-8554-fad5cea18f8d")
 
 ####################################################
 def tap(card, x = 0, y = 0):
@@ -433,3 +434,11 @@ def pickCharacters(*args):
     dlg.max = 10
     cardsSelected = dlg.show()
     return cardsSelected
+
+def addCounterDefense(card, x = 0, y = 0):
+        mute()
+        card.markers[CounterMarkerDefense] += 1
+
+def removeCounterDefense(card, x = 0, y = 0):
+        mute()
+        card.markers[CounterMarkerDefense] -= 1        

@@ -15,16 +15,10 @@
 	  scriptVersion="3.1.0.2">
 
 <scripts>
-	
 <script src="scripts/actions.py" />
-
-	
 <script src="scripts/decks.py" />
-
-	<script src="scripts/automation.py" />
-	
+<script src="scripts/automation.py" />
 <script src="scripts/util.py" />
-
 </scripts>
 
 <events>
@@ -86,7 +80,7 @@
 <size name="Combiner" width="160" height="224" back="Cards/front.png" front="Cards/front.png"/>
 </card>
 
-<table name="Table" visibility="undefined" ordered="False" width="600" height="425" background="Board/background.png" backgroundStyle="uniformToFill">
+<table name="Table" visibility="undefined" ordered="False" width="800" height="600" background="Board/background.png" backgroundStyle="uniformToFill">
    
 <groupaction menu="Clear targets" shortcut="Esc" execute="clearAll" />
    
@@ -106,6 +100,8 @@
 <cardaction menu="Set Damage" shortcut="F3" execute="setCounter" />
 <cardaction menu="Switch Modes" execute="awaken" shortcut="Ctrl+F"/>
 <cardaction menu="Flip Up/Down" execute="flip" />
+<cardaction menu="Add a Damage" shortcut="Ctrl+H" execute="addCounterDefense" />
+<cardaction menu="Remove a Damage" shortcut="Ctrl+Shift+H" execute="removeCounterDefense" />
 <cardaction menu="KO" execute="KO" />
 <cardaction menu="unKO" execute="unKO" />
 <groupaction menu="Sideboard" shortcut="ctrl+shift+S" execute="sideboard" />

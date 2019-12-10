@@ -70,6 +70,8 @@ def declareAttack(*args):
 
 def aiDeclareAttack(*args):
     mute()
+##    notify(args[0])
+    abilityMessage = args[0]
     atkCards = atkCardsInTable()
     if len(atkCards) == 0:
         notify("The AI has no available attackers!")
@@ -88,27 +90,30 @@ def aiDeclareAttack(*args):
     else:
         defCard = defCards[rnd(0,len(defCards) - 1)]
       
-    aiMakeAttack(atkCard, defCard)
+    aiMakeAttack(atkCard, defCard, abilityMessage)
 
-def aiMakeAttack(atkCard, defCard):
+def aiMakeAttack(atkCard, defCard, abilityMessage = ""):
     mute()
     ATK = int(atkCard.ATK)
     flippedOrange = aiFlipAttack()
     ATK += flippedOrange
-    notify("{} attacks {} with {} total ATK.".format(atkCard, defCard, ATK))
+    DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
+    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {}".format(atkCard.name, defCard.name, ATK, DEF)
+##    notify(abilityMessage + "\n\n" + "{} attacks {} with {} total ATK.".format(atkCard, defCard, ATK))
     atkCard.orientation = Rot90
 
-    DEF = askInteger("What is {}'s current DEF?".format(defCard.name), 1)
-    if DEF == None:
-        return
-    defFlip = askInteger("How many cards should you flip for defense?", 2)
+##    DEF = askInteger(message + "\n\n" + "What is {}'s current DEF?".format(defCard.name), 1)
+##    if DEF == None:
+##        return
+    defFlip = askInteger(message + "\n\n" + "How many cards should you flip for defense?", 2)
     if defFlip == None:
         return
     b = flipMany(9, defFlip)
     DEF += b
-    notify("{} deals {} damage to {}".format(atkCard, ATK-DEF, defCard))
-    if ATK - DEF > 0:
-        defCard.markers[CounterMarker] += ATK-DEF
+    DMG = ATK - DEF
+    notify("{} deals {} damage to {}".format(atkCard, max(DMG, 0), defCard))
+    if DMG > 0:
+        defCard.markers[CounterMarker] += DMG
 
 def aiFlipAttack(count = 2):
     orange = 0
@@ -148,15 +153,22 @@ def overrideTurnPassed(args):
 ##    if vsAI == False:
 ##        nextTurn(args.player)
 ##        return
+    turnCleanUp()
     aiTurn()
+    turnCleanUp()
 
+def turnCleanUp(*args):
+    mute()
+    cards = [c for c in table if c.controller == me and "Character" not in c.type and c.orientation == Rot270 and c.filler != "Neutral"]
+    for card in cards: card.moveTo(me.scrap)
+    
 def aiTurn(*args):
     mute()
 ##    notify("This is where the AI will do stuff!")
     aiFlippedCardsRemove()
     aiCardsUntap()
-    aiPlayCards()
-    aiDeclareAttack()
+    aiPlayCardsMessage = aiPlayCards()
+    aiDeclareAttack(aiPlayCardsMessage)
     aiFlippedCardsRemove()
     nextTurn(me)
 
@@ -180,9 +192,52 @@ def aiCardsUntap(*args):
 
 def aiPlayCards(*args):
     mute()
-    cardChosen = aiGetCard()
-    return
+##    cardChosen = aiGetCard()
+    aiGetCard
+    aiPlayCardsMessage = aiGetCard()
+    return(aiPlayCardsMessage)
 
 def aiGetCard(*args):
+    ##Creating a few custom actions to simulate "cards" the AI can play.
+    ##Should move command execution to aiPlayCards() function.
+    ##Should modularize the command selection to allow arbitrary lists to be provided..
     mute()
-    return
+    p = players[0]
+    actionsAI = ["Scrap", "Discard", "Damage"]
+    actionNumber = rnd(0,len(actionsAI) - 1)
+    action = actionsAI[actionNumber]
+    if action == "Scrap":
+        cards = [c for c in table if c.controller == p and "Upgrade" in c.type and c.filler != "Neutral"]
+        if len(cards) == 0:
+            actionNumber += 1
+            action = actionsAI[actionNumber]
+            pass
+        else:
+            scrapCard = cards[rnd(0,len(cards) - 1)]
+            scrapCard.moveTo(p.Scrap)
+            message = "The AI used its X technique and scrapped {}!".format(scrapCard.name)
+            return(message)
+    if action == "Discard":
+        if len(p.hand) == 0:
+            actionNumber += 1
+            action = actionsAI[actionNumber]
+        else:
+            discardCard = p.hand.random()
+            discardCard.moveTo(p.Scrap)
+            message = "The AI uses its X technique to make you discard {}!".format(discardCard.name)
+            return(message)
+    if action == "Damage":
+        cards = [c for c in table if c.controller == p and "Character" in c.type and c.filler != "Neutral"]
+        DMG = getAIDamage()
+        card = cards[rnd(0,len(cards) - 1)]
+        card.markers[CounterMarker] += DMG
+        message = "The AI uses its X technique to deal {} damage to {}".format(DMG, card.name)
+        return(message)
+    return("The AI was unable to perform any special actions this turn.")
+
+def getAIDamage(*args):
+    ##Temporarily Assigning a static value for all DMG abilities.
+    ##Could expand to allow RNG or even modifiers based on difficultly setting.
+    return(2)
+
+

@@ -1,6 +1,7 @@
 <set xmlns:noNamespaceSchemaLocation="CardSet.xsd" name="Wave 1" id="e6019a01-01af-405a-a077-981fc79b52fb" gameId="f44befce-4d6d-4fb9-a286-9585f36aecFF" gameVersion="0.0.0.1" version="0.0.0.1">
 <markers>
-<marker name="Damage" id="0f74413d-45d6-4c52-b584-201b99af4125" />
+<marker id="0f74413d-45d6-4c52-b584-201b99af4125" name="Damage" />
+<marker id="1a650fb4-58ff-4be6-8554-fad5cea18f8d" name="Defense" />
 </markers><cards>
 <card id="c3200832-3e7c-42db-92a7-5ddc02597c33" name="Aerial Recon">
 <property name="Card Number" value="U001" />
