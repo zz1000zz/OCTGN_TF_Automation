@@ -1,25 +1,5 @@
 ##File to store a list of cards with automation for the AI.
 ##Also includes the underlying functions.  May want to break those out later.
-
-cardList = {
-    'Zap': {abilityDamage: (True, 2)},
-    'aiZap': {abilityDamage: (True, 2)},
-    }
-
-
-##Looks up a card's name in the cardList dictionary.  If present, executes one
-##or more functions associated with that card using the listed parameters.
-##Should raise an error instead of whispering an error message in the future.
-def activate(card, x=0, y=0, silent = False):
-    message = ""
-    if card.Name in cardList:
-        for f in cardList[card.Name]:
-            message += f(*cardList[card.Name][f])
-    else:
-        if silent == False:
-            whisper("This card doesn't have an automated ability yet.")
-    return(message)
-
 def aiDraw(*args):
     if len(shared.Deck ) == 0:
         reshuffleAI()
@@ -28,13 +8,13 @@ def aiDraw(*args):
     card.moveTo(shared.Scrap)
     return(message)
 
-def abilityDamage(targted = False, DMG = 2, args*):
+def abilityDamage(targeted = False, DMG = 2, *args):
     mute()
     p = players[0]
     cards = [c for c in table if c.controller == p and "Character" in c.type and c.filler != "Neutral"]
-    DMG = getAIDamage()
+##    DMG = getAIDamage()
     d = 0
-    if args[0] == True:
+    if targeted == True:
         for c in table:
           if c.markers[CounterMarker] > d:
             card = c
@@ -88,3 +68,22 @@ def aiGainDEF(count, *args):
     tempDEF += count
     message = "The AI bots gained {} DEF for a turn!".format(count)
 
+
+##Placing this at the bottom of the file so functions are defined before it loads.
+cardList = {
+    'Zap': {abilityDamage: (True, 1)},
+    'Plasma Burst': {abilityDamage: (True, 2)}
+    }
+
+##Looks up a card's name in the cardList dictionary.  If present, executes one
+##or more functions associated with that card using the listed parameters.
+##Should raise an error instead of whispering an error message in the future.
+def activate(card, x=0, y=0, silent = False):
+    message = ""
+    if card.Name in cardList:
+        for f in cardList[card.Name]:
+            message += f(*cardList[card.Name][f])
+    else:
+        if silent == False:
+            whisper("This card doesn't have an automated ability yet.")
+    return(message)

@@ -168,8 +168,8 @@ def aiMakeAttack(atkCard, defCard, abilityMessage = ""):
     ATK += flippedOrange
     ATK += tempATK
     DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
-    pierce += flippedBlack
-    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {} with a Pierce of {}".format(atkCard.name, defCard.name, ATK, DEF, pierce)
+    atkPierce = pierce + flippedBlack
+    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {} with a Pierce of {}".format(atkCard.name, defCard.name, ATK, DEF, atkPierce)
 ##    atkCard.orientation = Rot90
 
     defFlip = askInteger(message + "\n\n" + "How many cards should you flip for defense?", 2)
@@ -277,13 +277,14 @@ def overrideTurnPassed(args):
 
 def turnCleanUp(*args):
     mute()
-    global bold, tough, tempATK, tempDEF
+    global bold, tough, tempATK, tempDEF, pierce
     cards = [c for c in table if c.controller == me and "Character" not in c.type and c.orientation == Rot270 and c.filler != "Neutral"]
     for card in cards: card.moveTo(me.scrap)
     bold = 0
     tough = 0
     tempATK = 0
     tempDEF = 0
+    pierce = 0
     
 def aiTurn(*args):
     mute()
