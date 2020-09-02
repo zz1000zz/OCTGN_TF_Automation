@@ -11,12 +11,14 @@ cardList = {
 ##or more functions associated with that card using the listed parameters.
 ##Should raise an error instead of whispering an error message in the future.
 def activate(card, x=0, y=0, silent = False):
+    message = ""
     if card.Name in cardList:
         for f in cardList[card.Name]:
-            f(*cardList[card.Name][f])
+            message += f(*cardList[card.Name][f])
     else:
         if silent == False:
             whisper("This card doesn't have an automated ability yet.")
+    return(message)
 
 def abilityDamage(targted = False, DMG = 2, args*):
     mute()
@@ -58,19 +60,23 @@ def aiGainBold(count, *args):
     mute()
     global bold
     bold += count
+    message = "The AI bots gained {} Bold for a turn!".format(count)
 
 def aiGainTough(count, *args):
     mute()
     global tough
     tough += count
+    message = "The AI bots gained {} Tough for a turn!".format(count)
 
 def aiGainATK(count, *args):
     mute()
     global tempATK
     tempATK += count
+    message = "The AI bots gained {} ATK for a turn!".format(count)
 
 def aiGainDEF(count, *args):
     mute()
     global tempDEF
     tempDEF += count
+    message = "The AI bots gained {} DEF for a turn!".format(count)
 
