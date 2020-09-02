@@ -44,7 +44,7 @@ def abilityScrap(*args):
     message = "The AI used its X technique and scrapped {}!".format(scrapCard.name)
     return(message)
 
-def aiGainBOld(count, *args):
+def aiGainBold(count, *args):
     mute()
     global bold
     bold += count
@@ -53,3 +53,13 @@ def aiGainTough(count, *args):
     mute()
     global tough
     tough += count
+
+def aiGainATK(count, *args):
+    mute()
+    global tempATK
+    tempATK += count
+
+def aiGainDEF(count, *args):
+    mute()
+    global tempDEF
+    tempDEF += count
