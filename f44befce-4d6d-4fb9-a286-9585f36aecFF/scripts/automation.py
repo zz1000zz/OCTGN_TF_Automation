@@ -1,5 +1,31 @@
 import re
 vsAI = False
+cardsUndo = []
+
+def onCardsMoved(args):
+    mute()
+    global cardsUndo
+    cardsUndo.append(args)
+    if len(cardsUndo) > 10:
+        cardsUndo.pop(0)
+
+def undo(args):
+    mute()
+    global cardsUndo
+    if len(cardsUndo) == 0:
+        whisper("Sorry, we have no saved card movements to undo.")
+        return
+    lastMove = cardsUndo.pop()
+    index = 0
+    for card in lastMove.cards:
+        oldCoords = (lastMove.xs[index], lastMove.ys[index])
+        newCoords = (card.position[0], card.position[1])
+        group = lastMove.fromGroups[index]
+        if group == table:
+            card.moveToTable(oldCoords[0], oldCoords[1])
+        else:
+            card.moveTo(group)
+        index += 1
 
 def onGameStarted(*args):
     mute()
@@ -12,20 +38,32 @@ def onGameStarted(*args):
 
 def initSinglePlayer(*args):
     mute()
-    ##testDeck is the name of a sample deck intended to be loaded from a data file
-    ##Coud add other decks and code to choose between them.
-##    loadTable("Yes", testDeck)
-    ##May not use this approach.  For now, manually create a cards for the AI.
-    c = table.create("a881606a-5e32-4406-a61c-811a9122cf58", 0, -150, 1, False)
-    c.filler = "Neutral"
-    ##card.filler is currently used to track who cards belong to.
-    c = table.create("a881606a-5e32-4406-a61c-811a9122cf58", 150, -150, 1, False)
-    c.filler = "Neutral"
-    c.anchor = True
+    playAICharacters()
+    for card in flipDeck:
+        shared.Deck.create(card, 1)
     me.deck.shuffle()
 
-def onCardsMoved(args):
+def playAICharacters(*args):
+    mute()
+    AICharacters = getAICharacters()
+    count = len(AICharacters)
+    characters = AICharacters
+    i = -1
+    if count == 1:
+        c = table.create(characters[0], -50, 150)
+        c.filler = "Neutral"
+        c.anchor = True
+        return
+    for card in characters:
+        x = round(600/(count-1))*i + 250
+        c = table.create(card, x, -150)
+        c.filler = "Neutral"
+        c.anchor = True
+        i += 1
+
+def onCardsMovedDeprecated(args):
     ##Effectively disables manual card movement unless player turns the AI off.
+    ##vsAI is set to False to disable this as it is not in use at the moment.
     mute()
     global vsAI
     if vsAI == False:
@@ -45,32 +83,62 @@ def onCardsMoved(args):
         else:
             card.moveToTable(oldCoords[0], oldCoords[1])
         index += 1
-    
-def declareAttack(*args):
-    mute()
-    atkCardsInTable = [c for c in table if c.controller == me and Character in c.type]
-    dlg = cardDlg(atkCardsInTable)
-    dlg.max = 1
-    cardsSelected = dlg.show()
-    if cardsSelected:
-        for card in cardsSelected:
-            notify("{} was selected to attack!".format(card))
 
-    defCardsInTable = [c for c in table if c.controller != me and "Character" in c.type]
-    if len(defCardsInTable) > 1:
-        dlg = cardDlg(defCardsInTable)
-        dlg.max = 1
-        cardsSelected = dlg.show()
-        if cardsSelected:
-            for card in cardsSelected:
-                notify("{} was selected as the target of the attack!".format(card))
-    elif len(defCardsInTable) == 1:
-        card = defCardsInTable[0]
-        notify("{} was selected as the target of the attack!".format(card))
+    
+def declareAttack(atkCard, *args):
+    mute()
+##    if isinstance(card, list):
+##        return
+    if len(atkCard) > 1:
+        notify("Please only select one card while attacking.")
+        return
+    atkCard = atkCard[0]
+
+    defCardsInTable = [c for c in table if "Character" in c.type and c.filler == 'Neutral']
+    c = 0
+    for card in defCardsInTable:
+        if card.targetedBy:
+            defCard = card
+            c += 1
+            if c > 1:
+                notify("Please only target one enemy at a time when attacking")
+                return
+    if c == 0:
+        notify("Please select an enemy bot when making your attacks!")
+        return
+    message = "{} is attacking the enemy {}".format(atkCard.name, defCard.name)
+    makeAttack(atkCard, defCard, message)
+    
+def makeAttack(atkCard, defCard, message = ""):
+    mute()
+    DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
+    notify(format(DEF))
+    ATK = int(atkCard.ATK) + atkCard.markers[CounterMarkerAttack]
+    atkFlip = askInteger(message + "\n\n" + "How many cards should you flip for your attack?", 2)
+    if atkFlip == None:
+        notify("Please make sure you select a value next time")
+        return
+    atkCard.orientation = Rot90
+    flippedOrange = flipMany(8, atkFlip)
+    ATK += flippedOrange
+
+    flippedBlue = aiFlipDefense()
+    DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
+    DEF += flippedBlue
+
+    DMG = ATK - DEF
+    DMG = max(DMG, 0)
+
+    message = "{} attacks {} with {} total ATK against a DEF of {}, dealing {} damage.".format(atkCard.name, defCard.name, ATK, DEF, DMG)
+    notify(message)
+    
+    if DMG > 0:
+        dealDamage(defCard, DMG)
+##        defCard.markers[CounterMarker] += DMG
+    
 
 def aiDeclareAttack(*args):
     mute()
-##    notify(args[0])
     abilityMessage = args[0]
     atkCards = atkCardsInTable()
     if len(atkCards) == 0:
@@ -95,39 +163,86 @@ def aiDeclareAttack(*args):
 def aiMakeAttack(atkCard, defCard, abilityMessage = ""):
     mute()
     ATK = int(atkCard.ATK)
-    flippedOrange = aiFlipAttack()
+    flippedOrange, flippedBlack = aiFlipAttack()
     ATK += flippedOrange
     DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
-    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {}".format(atkCard.name, defCard.name, ATK, DEF)
-##    notify(abilityMessage + "\n\n" + "{} attacks {} with {} total ATK.".format(atkCard, defCard, ATK))
-    atkCard.orientation = Rot90
+    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {} with a Pierce of {}".format(atkCard.name, defCard.name, ATK, DEF, flippedBlack)
+##    atkCard.orientation = Rot90
 
-##    DEF = askInteger(message + "\n\n" + "What is {}'s current DEF?".format(defCard.name), 1)
-##    if DEF == None:
-##        return
     defFlip = askInteger(message + "\n\n" + "How many cards should you flip for defense?", 2)
+    atkCard.orientation = Rot90
     if defFlip == None:
         return
     b = flipMany(9, defFlip)
     DEF += b
     DMG = ATK - DEF
-    notify("{} deals {} damage to {}".format(atkCard, max(DMG, 0), defCard))
+    DMG = max(DMG, 0)
+    DMG = max(DMG, max(ATK, flippedBlack))
+    notify("{} deals {} damage to {}".format(atkCard, DMG, defCard))
     if DMG > 0:
-        defCard.markers[CounterMarker] += DMG
+        aiDealDamage(defCard, DMG)
+
+def aiDealDamage(defCard, DMG):
+    mute()
+    defCard.markers[CounterMarker] += DMG
+
+def dealDamage(defCard, DMG):
+    mute()
+    defCard.markers[CounterMarker] += DMG
+    if int(defCard.markers[CounterMarker]) >= int(defCard.HP):
+        koAICard(defCard)
+        return
+    defCard.target(False)
+
+def koAICard(defCard):
+    mute()
+    notify("You KO'd {}!".format(defCard))
+    defCard.delete()
+    defCardsInTable = [c for c in table if "Character" in c.type and c.filler == 'Neutral']
+    if len(defCardsInTable) == 0:
+        victory()
+
+def victory(*args):
+    message = "You've beaten the AI, congratulations!"
+    notifyBar("#FF0000", message)
+    aiFlippedCardsRemove()
 
 def aiFlipAttack(count = 2):
     orange = 0
-    for i in range(count):
-        guid = flipDeck[rnd(0,len(flipDeck) - 1)]
-        c = table.create(guid, 325, i * 10 - 150)
+    black = 0
+    for i in range(count + Bold):
+        if len(shared.Deck) == 0:
+            reshuffleAI()
+        c = shared.Deck.top()
+        c.moveToTable(325, i * 10 - 150)
         c.orientation = Rot90
         c.sendToFront()
         c.filler = "Neutral"
         try:
             orange += int(c.properties["Orange Pips"])
         except:
-            pass
-    return(orange)
+            pass    
+        try:
+            black += int(c.properties["Black Pips"])
+        except:
+            pass    
+    return(orange, black)
+
+def aiFlipDefense(count = 2):
+    blue = 0
+    for i in range(count + Tough):
+        if len(shared.Deck) == 0:
+            reshuffleAI()
+        c = shared.Deck.top()
+        c.moveToTable(325, i * 10 - 150)
+        c.orientation = Rot90
+        c.sendToFront()
+        c.filler = "Neutral"
+        try:
+            blue += int(c.properties["Blue Pips"])
+        except:
+            pass    
+    return(blue)
 
 def atkCardsInTable(*args):
     mute()
@@ -155,45 +270,53 @@ def overrideTurnPassed(args):
 ##        return
     turnCleanUp()
     aiTurn()
-    turnCleanUp()
+##    turnCleanUp()
 
 def turnCleanUp(*args):
     mute()
+    global Bold, Tough
     cards = [c for c in table if c.controller == me and "Character" not in c.type and c.orientation == Rot270 and c.filler != "Neutral"]
     for card in cards: card.moveTo(me.scrap)
+    Bold = 0
+    Tough = 0
     
 def aiTurn(*args):
     mute()
 ##    notify("This is where the AI will do stuff!")
+    if aiCardsUntap() == False:
+        return
     aiFlippedCardsRemove()
-    aiCardsUntap()
     aiPlayCardsMessage = aiPlayCards()
     aiDeclareAttack(aiPlayCardsMessage)
     aiFlippedCardsRemove()
     nextTurn(me)
 
+def passTurn(*args):
+    overrideTurnPassed(me)
+
 def aiFlippedCardsRemove(*args):
     mute()
     for card in table:
         if card.filler == "Neutral" and card.orientation == Rot90 and "Character" not in card.type:
-            card.delete()
+            card.moveTo(shared.Scrap)
+    shared.Deck.shuffle()
 
 def aiCardsUntap(*args):
     untappedAICards = [card for card in table if card.filler == "Neutral" and card.orientation == Rot0]
     tappedAICards = [card for card in table if card.filler == "Neutral" and card.orientation == Rot90]
     if len(untappedAICards) == 0:
-        for card in table:
-            if card.orientation == Rot90 and card.filler == "Neutral" and "Character" in card.type:
-                card.orientation = Rot0
-        if not confirm("The AI is untapping to start a new turn.  Proceed?"):
-            for card in tappedAICards:
-                card.orientation = Rot90
-        notify("The AI untaps its characters to start a new turn!")
+        if confirm("The AI is wanting to untap and start a new turn.  Proceed?"):
+            for card in table:
+                if card.orientation == Rot90 and card.filler == "Neutral" and "Character" in card.type:
+                    card.orientation = Rot0
+                    untapAll(table)
+        else:
+            return(False)
+        notify("You and the AI untap your bots!")
 
 def aiPlayCards(*args):
     mute()
 ##    cardChosen = aiGetCard()
-    aiGetCard
     aiPlayCardsMessage = aiGetCard()
     return(aiPlayCardsMessage)
 
@@ -202,42 +325,80 @@ def aiGetCard(*args):
     ##Should move command execution to aiPlayCards() function.
     ##Should modularize the command selection to allow arbitrary lists to be provided..
     mute()
-    p = players[0]
     actionsAI = ["Scrap", "Discard", "Damage"]
+    actionsAI = getAIActions(1)
     actionNumber = rnd(0,len(actionsAI) - 1)
-    action = actionsAI[actionNumber]
-    if action == "Scrap":
-        cards = [c for c in table if c.controller == p and "Upgrade" in c.type and c.filler != "Neutral"]
-        if len(cards) == 0:
-            actionNumber += 1
-            action = actionsAI[actionNumber]
-            pass
-        else:
-            scrapCard = cards[rnd(0,len(cards) - 1)]
-            scrapCard.moveTo(p.Scrap)
-            message = "The AI used its X technique and scrapped {}!".format(scrapCard.name)
+    for action in actionsAI[actionNumber:]:
+        if action == "Scrap":
+            message = abilityScrap()
+            if message is not None:
+                return(message)
+        if action == "Discard":
+            message = abilityDiscard()
+            if message is not None:
+                return(message)
+        if action == "Damage":
+            message = abilityDamage(True)
             return(message)
-    if action == "Discard":
-        if len(p.hand) == 0:
-            actionNumber += 1
-            action = actionsAI[actionNumber]
-        else:
-            discardCard = p.hand.random()
-            discardCard.moveTo(p.Scrap)
-            message = "The AI uses its X technique to make you discard {}!".format(discardCard.name)
-            return(message)
-    if action == "Damage":
-        cards = [c for c in table if c.controller == p and "Character" in c.type and c.filler != "Neutral"]
-        DMG = getAIDamage()
-        card = cards[rnd(0,len(cards) - 1)]
-        card.markers[CounterMarker] += DMG
-        message = "The AI uses its X technique to deal {} damage to {}".format(DMG, card.name)
-        return(message)
     return("The AI was unable to perform any special actions this turn.")
 
+def getAIAction(*args):
+    mute()
+
+def abilityDamage(*args):
+    mute()
+    p = players[0]
+    cards = [c for c in table if c.controller == p and "Character" in c.type and c.filler != "Neutral"]
+    DMG = getAIDamage()
+    d = 0
+    if args[0] == True:
+        for c in table:
+          if c.markers[CounterMarker] > d:
+            card = c
+            d = c.markers[CounterMarker]
+        if d == 0: card = cards[rnd(0,len(cards) - 1)]
+    card = cards[rnd(0,len(cards) - 1)]
+    card.markers[CounterMarker] += DMG
+    message = "The AI uses its X technique to deal {} damage to {}".format(DMG, card.name)
+    return(message)
+
+def abilityDiscard(*args):
+    mute()
+    p = players[0]
+    if len(p.hand) == 0: return(None)
+    discardCard = p.hand.random()
+    discardCard.moveTo(p.Scrap)
+    message = "The AI uses its X technique to make you discard {}!".format(discardCard.name)
+    return(message)
+
+def abilityScrap(*args):
+    mute()
+    p = players[0]
+    cards = [c for c in table if c.controller == p and "Upgrade" in c.type and c.filler != "Neutral"]
+    if len(cards) == 0: return(None)
+    scrapCard = cards[rnd(0,len(cards) - 1)]
+    scrapCard.moveTo(p.Scrap)
+    message = "The AI used its X technique and scrapped {}!".format(scrapCard.name)
+    return(message)
+
+def gainAIBOld(count, *args):
+    mute()
+    global Bold
+    Bold += count
+
+def gainAITough(count, *args):
+    mute()
+    global Tough
+    Tough += count    
+
 def getAIDamage(*args):
-    ##Temporarily Assigning a static value for all DMG abilities.
+    ##Temporarily assigning a static value for all DMG abilities.
     ##Could expand to allow RNG or even modifiers based on difficultly setting.
     return(2)
 
-
+def reshuffleAI(*args):
+    mute()
+    for card in shared.Scrap:
+        card.moveTo(shared.Deck)
+    shuffle(shared.Deck)
+    notify("The AI reshuffles their Scrap pile into their Deck!")

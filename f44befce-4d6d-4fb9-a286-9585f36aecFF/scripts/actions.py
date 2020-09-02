@@ -1,7 +1,7 @@
 import re
-
 CounterMarker =("Damage", "0f74413d-45d6-4c52-b584-201b99af4125")
 CounterMarkerDefense = ("Defense", "1a650fb4-58ff-4be6-8554-fad5cea18f8d")
+CounterMarkerAttack = ("Attack", "bae4f074-7f30-49fa-9665-26d13200e566")
 
 ####################################################
 def tap(card, x = 0, y = 0):
@@ -15,7 +15,7 @@ def tap(card, x = 0, y = 0):
 def untapAll(group, x = 0, y = 0): #Modified it to account for Energy which will be played upside down
 	mute()
 	for card in group:
-		if not card.owner == me:
+		if not card.owner == me or card.filler == "Neutral":
 			continue
 		if card.orientation == Rot90:
 			card.orientation = Rot0
@@ -133,13 +133,25 @@ def discard(card, x = 0, y = 0): #Renamed
 
 def addCounter(card, x = 0, y = 0):
 	mute()
-	notify("{} adds 1 counter to {}.".format(me, card))
+	notify("{} adds 1 damage to {}.".format(me, card))
 	card.markers[CounterMarker] += 1
 
 def removeCounter(card, x = 0 , y = 0):
 	mute()
-	notify("{} removes 1 counter to {}.".format(me, card))
+	notify("{} removes 1 damage from {}.".format(me, card))
 	card.markers[CounterMarker] -= 1
+
+def addCounterX(card, x = 0, y = 0):
+	mute()
+	x = askInteger("How much damage should be added?", 1)
+	notify("{} adds {} damage to {}.".format(me, x, card))
+	card.markers[CounterMarker] += x
+
+def removeCounterX(card, x = 0 , y = 0):
+	mute()
+	x = askInteger("How much damage should be removed?", 1)
+	notify("{} removes {} damage from {}.".format(me, x, card))
+	card.markers[CounterMarker] -= min(x, card.markers[CounterMarker] )
 	  
 def setCounter(card, x = 0, y = 0):
 	mute()
@@ -212,6 +224,8 @@ def flipMany(group, count=None, w=0, o=0, u=0, b=0, g=0):
     notify("{} flips {} orange pips, {} blue pips {} white pips {} green pips and {} black pips!".format(me, o, u, w, g, b))
     if group == 9:
         return(u)
+    if group == 8:
+        return(o)
         
 def flipBattle(count=1, card=None):
     mute()
@@ -376,7 +390,6 @@ def sideboard(group=me.Deck, x = 0, y = 0):
     me.Deck.visibility = "none"
     me.Sideboard.visibility = "Me"
 
-
 def playCharacters(group, x = 0, y = 0):
     mute()
     stars = 0
@@ -442,3 +455,11 @@ def addCounterDefense(card, x = 0, y = 0):
 def removeCounterDefense(card, x = 0, y = 0):
         mute()
         card.markers[CounterMarkerDefense] -= 1        
+
+def addCounterAttack(card, x = 0, y = 0):
+        mute()
+        card.markers[CounterMarkerAttack] += 1
+
+def removeCounterAttack(card, x = 0, y = 0):
+        mute()
+        card.markers[CounterMarkerAttack] -= 1 

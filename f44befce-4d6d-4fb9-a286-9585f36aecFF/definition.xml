@@ -79,7 +79,10 @@
 <size name="Extra Large" width="126" height="176" back="Cards/front.png" front="Cards/front.png"/>
 <size name="Combiner" width="160" height="224" back="Cards/front.png" front="Cards/front.png"/>
 </card>
+<gameboards src="Board/background.png" x="-601" y="-214" width="1" height="1">
+    <gameboard name="newboard" src="Board/background.png" x="-300" y="-200" width="600" height="400"/>
 
+</gameboards>
 <table name="Table" visibility="undefined" ordered="False" width="800" height="600" background="Board/background.png" backgroundStyle="uniformToFill">
    
 <groupaction menu="Clear targets" shortcut="Esc" execute="clearAll" />
@@ -88,6 +91,8 @@
    
 <groupaction menu="Untap All" shortcut="F1" execute="untapAll" />
    
+<groupaction menu="End Turn" shortcut="Ctrl+E" execute="passTurn" />
+
 <groupaction menu="Grab Battle Card From Collection" execute="wish" />
 <groupaction menu="Scoop" shortcut="Ctrl+Shift+S" execute="scoop" />
    
@@ -95,15 +100,25 @@
    
 <cardaction menu="Discard" shortcut="Del" execute="discard" />
 
+<cardaction menu="Switch Modes" execute="awaken" shortcut="Ctrl+F"/>
+<cardactions menu="Damage Functions">
 <cardaction menu="Add a Damage" shortcut="F1" execute="addCounter" />
 <cardaction menu="Remove a Damage" shortcut="F2" execute="removeCounter" />
+<cardaction menu="Add X Damage" execute="addCounterX" />
+<cardaction menu="Remove X Damage" execute="removeCounterX" />
 <cardaction menu="Set Damage" shortcut="F3" execute="setCounter" />
-<cardaction menu="Switch Modes" execute="awaken" shortcut="Ctrl+F"/>
+</cardactions>
+<cardactions menu="Modify Card Stats">
+<cardaction menu="Add a Defense" shortcut="Ctrl+H" execute="addCounterDefense" />
+<cardaction menu="Remove a Defense" shortcut="Ctrl+Shift+H" execute="removeCounterDefense" />
+<cardaction menu="Add an Attack" shortcut="Ctrl+N" execute="addCounterAttack" />
+<cardaction menu="Remove a Attack" shortcut="Ctrl+Shift+N" execute="removeCounterAttack" />
+</cardactions>
 <cardaction menu="Flip Up/Down" execute="flip" />
-<cardaction menu="Add a Damage" shortcut="Ctrl+H" execute="addCounterDefense" />
-<cardaction menu="Remove a Damage" shortcut="Ctrl+Shift+H" execute="removeCounterDefense" />
 <cardaction menu="KO" execute="KO" />
 <cardaction menu="unKO" execute="unKO" />
+<cardaction menu="Declare Attack" shortcut="Ctrl+A" batchExecute="declareAttack" />
+<groupaction menu="Undo Last Card Movement" shortcut="Ctrl+U" execute="undo" />
 <groupaction menu="Sideboard" shortcut="ctrl+shift+S" execute="sideboard" />
 </table>
 
@@ -146,6 +161,17 @@
 
 </player>
 
+<shared>
+<group name="Hand" visibility="none" icon="cards/front.png">
+
+</group>
+<group name="Deck" visibility="none" icon="cards/front.png">
+
+</group>
+<group name="Scrap" visibility="all" icon="cards/front.png">
+
+</group>
+</shared>
 <deck>
 	
 <section name="Characters" group="Characters" />

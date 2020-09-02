@@ -2,6 +2,7 @@
 <markers>
 <marker id="0f74413d-45d6-4c52-b584-201b99af4125" name="Damage" />
 <marker id="1a650fb4-58ff-4be6-8554-fad5cea18f8d" name="Defense" />
+<marker id="bae4f074-7f30-49fa-9665-26d13200e566" name="Attack" />
 </markers><cards>
 <card id="c3200832-3e7c-42db-92a7-5ddc02597c33" name="Aerial Recon">
 <property name="Card Number" value="U001" />
@@ -1731,7 +1732,7 @@
 <property name="Trait" value="Dinobot/Specialist" />
 </alternate>
 </card>
-<card id="14c1fd8e-8fc7-464e-b9b1-468e4931b0da" name="Dinobot Slug - Hot-Header Warrior" size="Large">
+<card id="14c1fd8e-8fc7-464e-b9b1-468e4931b0da" name="Dinobot Slug - Hot-Headed Warrior" size="Large">
 <property name="Card Number" value="CT 17" />
 <property name="Type" value="Character" />
 <property name="ATK" value="3" />
@@ -1746,7 +1747,7 @@
 <property name="Faction" value="Autobot" />
 <property name="Text" value="" />
 <property name="Rarity" value="Common" />
-<alternate name="Dinobot Slug - Hot-Header Warrior" type="bot">
+<alternate name="Dinobot Slug - Hot-Headed Warrior" type="bot">
 <property name="ATK" value="6" />
 <property name="DEF" value="0" />
 <property name="Text" value="" />
