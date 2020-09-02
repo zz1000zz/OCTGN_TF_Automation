@@ -334,6 +334,10 @@ def aiGetCard(*args):
     actionsAI = getAIActions(1)
     actionNumber = rnd(0,len(actionsAI) - 1)
     for action in actionsAI[actionNumber:]:
+        if action == "Draw":
+            message = aiDraw()
+            if message is not None:
+                return(message)
         if action == "Scrap":
             message = abilityScrap()
             if message is not None:

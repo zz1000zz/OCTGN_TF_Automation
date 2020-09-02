@@ -20,6 +20,14 @@ def activate(card, x=0, y=0, silent = False):
             whisper("This card doesn't have an automated ability yet.")
     return(message)
 
+def aiDraw(*args):
+    if len(shared.Deck ) == 0:
+        reshuffleAI()
+    card = shared.Deck.top()
+    message = activate(card)
+    card.moveTo(shared.Scrap)
+    return(message)
+
 def abilityDamage(targted = False, DMG = 2, args*):
     mute()
     p = players[0]
