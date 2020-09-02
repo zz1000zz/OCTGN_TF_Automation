@@ -49,7 +49,7 @@
 	
 <property name="Stars" type="Integer" />
 	
-<property name="Trait" type="String" />
+<property name="Traits" type="String" />
 	
 <property name="Orange Pips" type="Integer" />
 	
