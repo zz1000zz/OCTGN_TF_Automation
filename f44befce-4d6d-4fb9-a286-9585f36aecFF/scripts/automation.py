@@ -166,7 +166,8 @@ def aiMakeAttack(atkCard, defCard, abilityMessage = ""):
     flippedOrange, flippedBlack = aiFlipAttack()
     ATK += flippedOrange
     DEF = int(defCard.DEF) + defCard.markers[CounterMarkerDefense]
-    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {} with a Pierce of {}".format(atkCard.name, defCard.name, ATK, DEF, flippedBlack)
+    pierce += flippedBlack
+    message = abilityMessage + "\n\n" + "{} attacks {} with {} total ATK against a DEF of {} with a Pierce of {}".format(atkCard.name, defCard.name, ATK, DEF, pierce)
 ##    atkCard.orientation = Rot90
 
     defFlip = askInteger(message + "\n\n" + "How many cards should you flip for defense?", 2)
@@ -177,7 +178,7 @@ def aiMakeAttack(atkCard, defCard, abilityMessage = ""):
     DEF += b
     DMG = ATK - DEF
     DMG = max(DMG, 0)
-    DMG = max(DMG, max(ATK, flippedBlack))
+    DMG = max(DMG, max(ATK, pierce))
     notify("{} deals {} damage to {}".format(atkCard, DMG, defCard))
     if DMG > 0:
         aiDealDamage(defCard, DMG)
@@ -210,7 +211,7 @@ def victory(*args):
 def aiFlipAttack(count = 2):
     orange = 0
     black = 0
-    for i in range(count + Bold):
+    for i in range(count + bold):
         if len(shared.Deck) == 0:
             reshuffleAI()
         c = shared.Deck.top()
@@ -230,7 +231,7 @@ def aiFlipAttack(count = 2):
 
 def aiFlipDefense(count = 2):
     blue = 0
-    for i in range(count + Tough):
+    for i in range(count + tough):
         if len(shared.Deck) == 0:
             reshuffleAI()
         c = shared.Deck.top()
@@ -274,11 +275,11 @@ def overrideTurnPassed(args):
 
 def turnCleanUp(*args):
     mute()
-    global Bold, Tough
+    global bold, tough
     cards = [c for c in table if c.controller == me and "Character" not in c.type and c.orientation == Rot270 and c.filler != "Neutral"]
     for card in cards: card.moveTo(me.scrap)
-    Bold = 0
-    Tough = 0
+    bold = 0
+    tough = 0
     
 def aiTurn(*args):
     mute()
@@ -341,55 +342,6 @@ def aiGetCard(*args):
             message = abilityDamage(True)
             return(message)
     return("The AI was unable to perform any special actions this turn.")
-
-def getAIAction(*args):
-    mute()
-
-def abilityDamage(*args):
-    mute()
-    p = players[0]
-    cards = [c for c in table if c.controller == p and "Character" in c.type and c.filler != "Neutral"]
-    DMG = getAIDamage()
-    d = 0
-    if args[0] == True:
-        for c in table:
-          if c.markers[CounterMarker] > d:
-            card = c
-            d = c.markers[CounterMarker]
-        if d == 0: card = cards[rnd(0,len(cards) - 1)]
-    card = cards[rnd(0,len(cards) - 1)]
-    card.markers[CounterMarker] += DMG
-    message = "The AI uses its X technique to deal {} damage to {}".format(DMG, card.name)
-    return(message)
-
-def abilityDiscard(*args):
-    mute()
-    p = players[0]
-    if len(p.hand) == 0: return(None)
-    discardCard = p.hand.random()
-    discardCard.moveTo(p.Scrap)
-    message = "The AI uses its X technique to make you discard {}!".format(discardCard.name)
-    return(message)
-
-def abilityScrap(*args):
-    mute()
-    p = players[0]
-    cards = [c for c in table if c.controller == p and "Upgrade" in c.type and c.filler != "Neutral"]
-    if len(cards) == 0: return(None)
-    scrapCard = cards[rnd(0,len(cards) - 1)]
-    scrapCard.moveTo(p.Scrap)
-    message = "The AI used its X technique and scrapped {}!".format(scrapCard.name)
-    return(message)
-
-def gainAIBOld(count, *args):
-    mute()
-    global Bold
-    Bold += count
-
-def gainAITough(count, *args):
-    mute()
-    global Tough
-    Tough += count    
 
 def getAIDamage(*args):
     ##Temporarily assigning a static value for all DMG abilities.

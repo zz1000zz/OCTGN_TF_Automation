@@ -16,9 +16,13 @@
 
 <scripts>
 <script src="scripts/actions.py" />
+
 <script src="scripts/decks.py" />
+
 <script src="scripts/automation.py" />
 <script src="scripts/util.py" />
+
+<script src="scripts/methods.py" />
 </scripts>
 
 <events>
