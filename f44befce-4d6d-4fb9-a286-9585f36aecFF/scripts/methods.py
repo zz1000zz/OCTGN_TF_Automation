@@ -7,6 +7,16 @@ cardList = {
     }
 
 
+##Looks up a card's name in the cardList dictionary.  If present, executes one
+##or more functions associated with that card using the listed parameters.
+##Should raise an error instead of whispering an error message in the future.
+def activate(card, x=0, y=0, silent = False):
+    if card.Name in cardList:
+        for f in cardList[card.Name]:
+            f(*cardList[card.Name][f])
+    else:
+        if silent == False:
+            whisper("This card doesn't have an automated ability yet.")
 
 def abilityDamage(targted = False, DMG = 2, args*):
     mute()
@@ -63,3 +73,4 @@ def aiGainDEF(count, *args):
     mute()
     global tempDEF
     tempDEF += count
+
